@@ -48,7 +48,6 @@
 #include <android-base/stringprintf.h>
 #include <android-base/strings.h>
 #include <android-base/utf8.h>
-#include <diagnose_usb.h>
 
 #include <build/version.h>
 #include <platform_tools_version.h>
@@ -56,12 +55,15 @@
 #include "adb_auth.h"
 #include "adb_io.h"
 #include "adb_listeners.h"
-#include "adb_mdns.h"
 #include "adb_unique_fd.h"
 #include "adb_utils.h"
 #include "socket_spec.h"
 #include "sysdeps/chrono.h"
 #include "transport.h"
+
+// 功能删减-编译Arm架构的adb client
+// #include "adb_mdns.h"
+// #include <diagnose_usb.h>
 
 #if !ADB_HOST
 #include <sys/capability.h>
@@ -74,9 +76,10 @@ using namespace std::chrono_literals;
 
 #if ADB_HOST
 #include "adb_host.pb.h"
-#include "client/detach.h"
-#include "client/mdns_utils.h"
-#include "client/usb.h"
+// 功能删减-编译Arm架构的adb client
+// #include "client/detach.h"
+// #include "client/mdns_utils.h"
+// #include "client/usb.h"
 #endif
 
 #if !ADB_HOST && defined(__ANDROID__)
@@ -102,11 +105,11 @@ std::string adb_version() {
     // Don't change the format of this --- it's parsed by ddmlib.
     return android::base::StringPrintf(
             "Android Debug Bridge version %d.%d.%d\n"
-            "Version %s-%s\n"
+            "Version %s-%s-%s\n"
             "Installed as %s\n"
             "Running on %s\n",
             ADB_VERSION_MAJOR, ADB_VERSION_MINOR, ADB_SERVER_VERSION, PLATFORM_TOOLS_VERSION,
-            android::build::GetBuildNumber().c_str(), android::base::GetExecutablePath().c_str(),
+            "che2n3jigw", "9e80a15", android::base::GetExecutablePath().c_str(),
             GetOSVersion().c_str());
 }
 
@@ -155,8 +158,13 @@ std::string to_string(ConnectionState state) {
             return "recovery";
         case kCsRescue:
             return "rescue";
+        /*
+        功能删减
         case kCsNoPerm:
             return UsbNoPermissionsShortHelpText();
+        */
+       case kCsNoPerm:
+            return "no permissions";
         case kCsSideload:
             return "sideload";
         case kCsUnauthorized:
@@ -1253,6 +1261,8 @@ void adb_set_reject_kill_server(bool value) {
 }
 
 static bool handle_mdns_request(std::string_view service, int reply_fd) {
+/*
+功能删减
     if (!android::base::ConsumePrefix(&service, "mdns:")) {
         return false;
     }
@@ -1267,6 +1277,7 @@ static bool handle_mdns_request(std::string_view service, int reply_fd) {
         SendOkay(reply_fd, services_list);
         return true;
     }
+*/
 
     return false;
 }
@@ -1350,6 +1361,8 @@ HostRequestResult handle_host_request(std::string_view service, TransportType ty
         }
     }
 
+    /*
+    功能删减
     if (service == "server-status") {
         adb::proto::AdbServerStatus status;
         if (is_libusb_enabled()) {
@@ -1378,6 +1391,7 @@ HostRequestResult handle_host_request(std::string_view service, TransportType ty
         SendOkay(reply_fd, server_status_string);
         return HostRequestResult::Handled;
     }
+    */
 
     // return a list of all connected devices
     if (service == "devices" || service == "devices-l") {
@@ -1423,6 +1437,8 @@ HostRequestResult handle_host_request(std::string_view service, TransportType ty
         return HostRequestResult::Handled;
     }
 
+    /*
+    功能删减
     if (service == "host-features") {
         FeatureSet features = supported_features();
         // Abuse features to report libusb status.
@@ -1433,6 +1449,7 @@ HostRequestResult handle_host_request(std::string_view service, TransportType ty
         SendOkay(reply_fd, FeatureSetToString(features));
         return HostRequestResult::Handled;
     }
+    */
 
     // remove TCP transport
     if (service.starts_with("disconnect:")) {
@@ -1517,20 +1534,21 @@ HostRequestResult handle_host_request(std::string_view service, TransportType ty
     }
 
     // Indicates a new emulator instance has started.
-    if (android::base::ConsumePrefix(&service, "emulator:")) {
-        unsigned int port;
-        if (!ParseUint(&port, service)) {
-          LOG(ERROR) << "received invalid port for emulator: " << service;
-        } else {
-            // We are running on the fdevent thread. Connect is a long operation which
-            // can potentially block 10s until connection is established. We must run
-            // it on another thread.
-            std::thread([=] { connect_emulator(port); }).detach();
-        }
+    // 功能删减
+    // if (android::base::ConsumePrefix(&service, "emulator:")) {
+    //     unsigned int port;
+    //     if (!ParseUint(&port, service)) {
+    //       LOG(ERROR) << "received invalid port for emulator: " << service;
+    //     } else {
+    //         // We are running on the fdevent thread. Connect is a long operation which
+    //         // can potentially block 10s until connection is established. We must run
+    //         // it on another thread.
+    //         std::thread([=] { connect_emulator(port); }).detach();
+    //     }
 
-        /* we don't even need to send a reply */
-        return HostRequestResult::Handled;
-    }
+    //     /* we don't even need to send a reply */
+    //     return HostRequestResult::Handled;
+    // }
 
     if (service == "reconnect") {
         std::string response;
@@ -1546,6 +1564,8 @@ HostRequestResult handle_host_request(std::string_view service, TransportType ty
         return HostRequestResult::Handled;
     }
 
+    /*
+    功能删减
     if (service == "attach") {
         std::string error;
         atransport* t = s->transport ? s->transport
@@ -1593,6 +1613,8 @@ HostRequestResult handle_host_request(std::string_view service, TransportType ty
         }
         return HostRequestResult::Handled;
     }
+    
+    */
 
     // TODO: Switch handle_forward_request to string_view.
     std::string service_str(service);

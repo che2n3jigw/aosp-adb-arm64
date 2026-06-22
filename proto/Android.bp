@@ -191,3 +191,77 @@ filegroup {
         "//tools/asuite",
     ],
 }
+
+
+
+// 定义一个静态库模块，用于编译 ADB 相关的 Android 协议缓冲区（Protobuf）消息
+cc_library_static {
+    // 模块名称
+    name: "libadb_android_protos",
+    // 继承默认配置
+    defaults: ["adb_android_protos_defaults"],
+    // 静态链接 Protobuf 的完整版运行时库（NDK 兼容）
+    static_libs: [
+        "libprotobuf-cpp-full-ndk",
+    ],
+    // Protobuf 相关配置
+    proto: {
+        // 将生成的 .pb.h 头文件暴露给依赖此模块的其他模块
+        export_proto_headers: true,
+        // 使用完整的 Protobuf 实现（支持所有特性，与 lite 版本相对）
+        type: "full",
+    },
+}
+
+// 定义 ADB Android 协议缓冲区的通用编译配置
+cc_defaults {
+    name: "adb_android_protos_defaults",
+    // 编译警告选项（所有警告视为错误）
+    cflags: [
+        "-Wall",
+        "-Wextra",
+        "-Wthread-safety",
+        "-Werror",
+    ],
+
+    compile_multilib: "64",
+
+    // 源文件来自 filegroup "adb_android_proto"
+    srcs: [
+        ":adb_android_proto",
+    ],
+
+    // 模块可见性：仅允许 packages/modules/adb 及其子目录引用
+    visibility: [
+        "//packages/modules/adb:__subpackages__",
+    ],
+
+    stl: "libc++_static",
+
+    // 该模块仅在 com.android.adbd APEX（Android 容器化模块）中可用
+    apex_available: ["com.android.adbd"],
+}
+
+// 定义一个文件组，将 adb_host.proto 打包为一个可引用的源文件集合
+filegroup {
+    name: "adb_android_proto",
+    // 源文件列表：ADB 主机端协议定义文件
+    srcs: [
+        "adb_host.proto",
+    ],
+    // 模块可见性：允许 adb 子目录和 tools/asuite 引用
+    visibility: [
+        "//packages/modules/adb:__subpackages__",
+        "//tools/asuite",
+    ],
+}
+
+cc_library_static {
+    name: "libapp_processes_protos_android_full",
+    defaults: ["libapp_processes_protos_defaults"],
+
+    proto: {
+        export_proto_headers: true,
+        type: "full",
+    },
+}

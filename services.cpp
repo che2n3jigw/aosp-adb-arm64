@@ -36,7 +36,8 @@
 #include "adb_unique_fd.h"
 #include "adb_utils.h"
 #if ADB_HOST
-#include "client/adb_wifi.h"
+// 功能删减
+// #include "client/adb_wifi.h"
 #endif
 #include "services.h"
 #include "socket_spec.h"
@@ -45,7 +46,8 @@
 
 #if ADB_HOST
 #include "client/host_services.h"
-#include "client/mdns_tracker.h"
+// 功能删减
+// #include "client/mdns_tracker.h"
 #endif
 
 namespace {
@@ -102,6 +104,8 @@ unique_fd service_to_fd(std::string_view name, atransport* transport) {
 }
 
 #if ADB_HOST
+/*
+功能删减
 void connect_emulator(const std::string& port_spec, std::string* response) {
     std::vector<std::string> pieces = android::base::Split(port_spec, ",");
     if (pieces.size() != 2) {
@@ -140,13 +144,17 @@ void connect_emulator(const std::string& port_spec, std::string* response) {
                                                 console_port, adb_port, error.c_str());
     }
 }
+*/
 
 static void connect_service(unique_fd fd, std::string host) {
     CHECK_NOT_LOOPER_THREAD();
 
     std::string response;
     if (!strncmp(host.c_str(), "emu:", 4)) {
+        /*
+        功能删减
         connect_emulator(host.c_str() + 4, &response);
+        */
     } else {
         connect_device(host, &response);
     }
@@ -155,6 +163,8 @@ static void connect_service(unique_fd fd, std::string host) {
     SendProtocolString(fd.get(), response);
 }
 
+/*
+功能删减
 static void pair_service(unique_fd fd, std::string host, std::string password) {
     std::string response;
     adb_wifi_pair_device(host, password, response);
@@ -165,6 +175,7 @@ static void pair_service(unique_fd fd, std::string host, std::string password) {
         SendFail(fd, response);
     }
 }
+*/
 
 static void wait_service(unique_fd fd, std::string serial, TransportId transport_id,
                          std::string spec) {
@@ -279,6 +290,8 @@ asocket* host_service_to_socket(std::string_view name, std::string_view serial,
                 "connect", std::bind(connect_service, std::placeholders::_1, host));
         return create_local_socket(std::move(fd));
     } else if (android::base::ConsumePrefix(&name, "pair:")) {
+        /*
+        功能删减
         const char* divider = strchr(name.data(), ':');
         if (!divider) {
             return nullptr;
@@ -288,8 +301,12 @@ asocket* host_service_to_socket(std::string_view name, std::string_view serial,
         unique_fd fd = create_service_thread(
                 "pair", std::bind(pair_service, std::placeholders::_1, host, password));
         return create_local_socket(std::move(fd));
+        */
     } else if (android::base::ConsumePrefix(&name, HostServices::kTrackMdnsServices)) {
+        /*
+        功能删减
         return create_mdns_tracker();
+        */
     }
     return nullptr;
 }

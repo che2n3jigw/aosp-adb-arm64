@@ -45,7 +45,9 @@
 #include <android-base/stringprintf.h>
 #include <android-base/strings.h>
 #include <android-base/thread_annotations.h>
-#include <diagnose_usb.h>
+
+// 功能删减
+// #include <diagnose_usb.h>
 
 #include "adb.h"
 #include "adb_auth.h"
@@ -761,11 +763,14 @@ static void fdevent_register_transport(atransport* t) {
         t->connection()->SetTransport(t);
 
 #if ADB_HOST
+        /*
+        功能删减
         if (t->type == kTransportUsb &&
             attached_devices.ShouldStartDetached(*t->connection().get())) {
             VLOG(TRANSPORT) << "Force-detaching transport:" << t->serial;
             t->SetConnectionState(kCsDetached);
         }
+        */
 
         VLOG(TRANSPORT) << "transport:" << t->serial << "(" << state << ")";
         if (t->GetConnectionState() != kCsDetached) {
@@ -935,10 +940,13 @@ atransport* acquire_one_transport(TransportType type, const char* serial, Transp
 
     std::unique_lock<std::recursive_mutex> lock(transport_lock);
     for (const auto& t : transport_list) {
+        /*
+        功能删减
         if (t->GetConnectionState() == kCsNoPerm) {
             *error_out = UsbNoPermissionsLongHelpText();
             continue;
         }
+        */
 
         if (transport_id) {
             if (t->id == transport_id) {

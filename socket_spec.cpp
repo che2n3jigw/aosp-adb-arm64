@@ -30,9 +30,13 @@
 
 #include "adb.h"
 #include "adb_auth.h"
-#include "adb_mdns.h"
 #include "adb_utils.h"
 #include "sysdeps.h"
+
+/*
+功能删减
+#include "adb_mdns.h"
+*/
 
 using namespace std::string_literals;
 
@@ -57,7 +61,10 @@ using android::base::StringPrintf;
 #endif
 
 #if ADB_HOST
+/*
+功能删减
 #include "client/transport_mdns.h"
+*/
 #endif
 
 bool gListenAll = false;
@@ -224,6 +231,8 @@ bool socket_spec_connect(unique_fd* fd, std::string_view address, int* port, std
         } else {
 #if ADB_HOST
             // Check if the address is an mdns service we can connect to.
+            /*
+            功能删减
             if (auto mdns_info = mdns_get_connect_service_info(std::string(address.substr(4)));
                 mdns_info != std::nullopt) {
                 fd->reset(network_connect(mdns_info->v4_address_string(), mdns_info->port,
@@ -240,6 +249,8 @@ bool socket_spec_connect(unique_fd* fd, std::string_view address, int* port, std
             } else {
                 fd->reset(network_connect(hostname, port_value, SOCK_STREAM, 0, error));
             }
+            */
+            fd->reset(network_connect(hostname, port_value, SOCK_STREAM, 0, error));
 #else
             // Disallow arbitrary connections in adbd.
             *error = "adbd does not support arbitrary tcp connections";

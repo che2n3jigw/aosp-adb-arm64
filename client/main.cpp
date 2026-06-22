@@ -34,16 +34,23 @@
 #include "adb_auth.h"
 #include "adb_client.h"
 #include "adb_listeners.h"
-#include "adb_mdns.h"
 #include "adb_utils.h"
-#include "client/adb_wifi.h"
-#include "client/mdns_utils.h"
 #include "client/transport_client.h"
-#include "client/usb.h"
-#include "client/usb_libusb_hotplug.h"
 #include "commandline.h"
 #include "sysdeps/chrono.h"
 #include "transport.h"
+
+
+// 功能删减-编译Arm架构的adb client
+// mDNS 服务发现
+// #include "adb_mdns.h" 
+// #include "client/mdns_utils.h"
+// LibUSB 后端
+// #include "client/usb.h"
+// #include "client/usb_libusb_hotplug.h"
+// 配对流程
+// #include "client/adb_wifi.h"
+
 
 const char** __adb_argv;
 const char** __adb_envp;
@@ -73,7 +80,7 @@ void adb_server_cleanup() {
     //   3. usb_cleanup, to tear down the USB stack.
     close_smartsockets();
     kick_all_transports();
-    usb_cleanup();
+    // usb_cleanup(); 功能删减
 }
 
 static void intentionally_leak() {
@@ -133,6 +140,8 @@ int adb_server_main(int is_daemon, const std::string& socket_spec, const char* o
 
     init_reconnect_handler();
 
+    /*
+    功能删减
     if (mdns::is_enabled()) {
         init_mdns_transport_discovery();
     }
@@ -151,6 +160,7 @@ int adb_server_main(int is_daemon, const std::string& socket_spec, const char* o
         init_emulator_scanner(
                 android::base::StringPrintf("tcp:%d", DEFAULT_ADB_LOCAL_TRANSPORT_PORT));
     }
+    */
 
     std::string error;
 

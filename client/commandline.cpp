@@ -58,20 +58,23 @@ using namespace std::string_literals;
 #include "adb_auth.h"
 #include "adb_client.h"
 #include "adb_host.pb.h"
-#include "adb_install.h"
 #include "adb_io.h"
 #include "adb_unique_fd.h"
 #include "adb_utils.h"
 #include "app_processes.pb.h"
-#include "bugreport.h"
 #include "client/file_sync_client.h"
 #include "commandline.h"
-#include "fastdeploy.h"
-#include "incremental_server.h"
 #include "services.h"
 #include "shell_protocol.h"
 #include "socket_spec.h"
 #include "sysdeps/chrono.h"
+
+// 功能删减-编译Arm架构的adb client
+// #include "adb_install.h"
+// #include "fastdeploy.h"
+// #include "incremental_server.h"
+// #include "bugreport.h"
+
 
 DefaultStandardStreamsCallback DEFAULT_STANDARD_STREAMS_CALLBACK(nullptr, nullptr);
 
@@ -1491,6 +1494,8 @@ static bool _is_valid_ack_reply_fd(const int ack_reply_fd) {
 #endif
 }
 
+/*
+功能删减
 static bool _is_valid_os_fd(int fd) {
     // Disallow invalid FDs and stdin/out/err as well.
     if (fd < 3) {
@@ -1510,6 +1515,7 @@ static bool _is_valid_os_fd(int fd) {
 #endif
     return true;
 }
+ */
 
 bool forward_dest_is_featured(const std::string& dest, std::string* error) {
     auto features = adb_get_feature_set_or_die();
@@ -1784,7 +1790,10 @@ int adb_commandline(int argc, const char** argv) {
 
         return adb_query_command(query);
     } else if (!strcmp(argv[0], "emu")) {
-        return adb_send_emulator_command(argc, argv, serial);
+        /*
+        功能删减
+        return adb_send_emulator_command(argc, argv, serial);        
+        */
     } else if (!strcmp(argv[0], "shell")) {
         return adb_shell(argc, argv);
     } else if (!strcmp(argv[0], "exec-in") || !strcmp(argv[0], "exec-out")) {
@@ -1877,8 +1886,11 @@ int adb_commandline(int argc, const char** argv) {
     } else if (!strcmp(argv[0], "root") || !strcmp(argv[0], "unroot")) {
         return adb_root(argv[0]) ? 0 : 1;
     } else if (!strcmp(argv[0], "bugreport")) {
+        /*
+        功能删减
         Bugreport bugreport;
         return bugreport.DoIt(argc, argv);
+        */
     } else if (!strcmp(argv[0], "forward") || !strcmp(argv[0], "reverse")) {
         bool reverse = !strcmp(argv[0], "reverse");
         --argc;
@@ -2008,17 +2020,29 @@ int adb_commandline(int argc, const char** argv) {
         if (srcs.empty()) error_exit("pull requires an argument");
         return do_sync_pull(srcs, dst, copy_attrs, compression, nullptr, quiet) ? 0 : 1;
     } else if (!strcmp(argv[0], "install")) {
+        /*
+        功能删减
         if (argc < 2) error_exit("install requires an argument");
         return install_app(argc, argv);
+        */
     } else if (!strcmp(argv[0], "install-multiple")) {
+        /*
+        功能删减
         if (argc < 2) error_exit("install-multiple requires an argument");
         return install_multiple_app(argc, argv);
+        */
     } else if (!strcmp(argv[0], "install-multi-package")) {
+        /*
+        功能删减
         if (argc < 2) error_exit("install-multi-package requires an argument");
         return install_multi_package(argc, argv);
+        */
     } else if (!strcmp(argv[0], "uninstall")) {
+        /*
+        功能删减
         if (argc < 2) error_exit("uninstall requires an argument");
         return uninstall_app(argc, argv);
+        */
     } else if (!strcmp(argv[0], "sync")) {
         std::string src;
         bool list_only = false;
@@ -2185,6 +2209,8 @@ int adb_commandline(int argc, const char** argv) {
             }
         }
     } else if (!strcmp(argv[0], "inc-server")) {
+        /*
+        功能删减
         if (argc < 3) {
 #ifdef _WIN32
             error_exit("usage: adb inc-server CONNECTION_HANDLE OUTPUT_HANDLE [FILE1 FILE2 ...]");
@@ -2207,6 +2233,7 @@ int adb_commandline(int argc, const char** argv) {
         output_fd = adb_register_socket(output_fd);
         close_on_exec(output_fd);
         return incremental::serve(connection_fd, output_fd, argc - 3, argv + 3);
+        */
     } else if (!strcmp(argv[0], "attach") || !strcmp(argv[0], "detach")) {
         const char* service = strcmp(argv[0], "attach") == 0 ? "host:attach" : "host:detach";
         std::string result;

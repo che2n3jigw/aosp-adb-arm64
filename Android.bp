@@ -1152,3 +1152,151 @@ cc_aconfig_library {
     ],
     min_sdk_version: "apex_inherit",
 }
+
+// 定义一个 C/C++ 可执行文件（二进制程序）的构建目标
+cc_binary {
+    // 模块名称：生成的二进制文件名称为 adb_android
+    name: "adb_android",
+    // 继承默认配置：引用 adb_binary_android_defaults 中定义的通用设置
+    defaults: ["adb_binary_android_defaults"],
+    // 是否支持在主机（Host）上编译运行：false 表示仅用于设备端，不在主机上构建
+    host_supported: false,
+     // 是否支持在设备（Device）上编译运行：true 表示该模块会在 Android 设备上构建
+    device_supported: true,
+     // 编译多库架构：指定为 "64" 表示只编译 64 位版本（arm64-v8a）
+    compile_multilib: "64",
+}
+
+// 定义一个默认配置模板
+cc_defaults {
+    // 模块名称
+    name: "adb_binary_android_defaults",
+    // 指定使用哪种 C++ 标准库。
+    stl: "libc++_static",
+    // 继承默认配置
+    defaults: ["adb_android_defaults"],
+    // 指定需要编译的源文件。
+    srcs: [
+        "client/adb_client.cpp",        // adb 客户端核心逻辑
+        "client/commandline.cpp",       // 命令行参数解析
+        "client/file_sync_client.cpp",  // 文件同步功能（如 adb push/pull）
+        "client/main.cpp",              // 程序主入口
+        "client/line_printer.cpp",      // 用于控制台输出的行打印工具
+        "shell_service_protocol.cpp",   // 与设备端 shell 服务通信的协议实现
+    ],
+    // 指定需要静态链接的库,最终会链接进目标文件
+    static_libs: [
+        // adb 自身相关模块
+        "libadb_crypto",                        // adb 加密相关功能
+        "libadb_android",                       // adb 安卓特定功能的封装
+        "libadb_android_protos",                // adb 协议消息定义（使用 protobuf）
+        "libadb_protos",                        // adb 的 protobuf 序列化库
+        "libadb_sysdeps",                       // adb 系统依赖层
+        "libadb_tls_connection",                // adb 基于 TLS 的连接管理
+
+        // 通用基础库
+        "libapp_processes_protos_android_full", // 应用进程管理的 protobuf 定义
+        "libbase",                              // Android 基础工具库
+        "libbrotli",                            // Brotli 压缩算法库 (用于 adb 压缩传输)
+        "libcrypto_static",                     // OpenSSL 加密库 (静态)
+        "libcrypto_utils",                      // 加密工具库
+        "libcutils",                            // Android C 实用工具库
+        "liblog",                               // Android 日志库
+        "liblz4",                               // LZ4 压缩库 (用于 adb 压缩传输)
+        "libprotobuf-cpp-full-ndk",             // Protobuf 的 C++ 完整版实现 (NDK 版本)
+        "libssl",                               // OpenSSL SSL/TLS 实现库
+        "libutils",                             // Android C++ 实用工具库
+        "libz",                                 // zlib 压缩库
+        "libziparchive",                        // 用于处理 ZIP 压缩包
+        "libzstd",                              // Zstandard 压缩库
+    ],
+}
+
+cc_defaults {
+    name: "adb_android_defaults",
+
+    // 传递给 C/C++ 编译器 的参数。
+    cflags: [
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wexit-time-destructors",
+        "-Wno-non-virtual-dtor",
+        "-Wno-unused-parameter",
+        "-Wno-missing-field-initializers",
+        "-Wthread-safety",
+        "-Wvla",
+        "-DADB_HOST=1", // overridden by adbd_defaults
+        "-DANDROID_BASE_UNIQUE_FD_DISABLE_IMPLICIT_CONVERSION=1",
+    ],
+    // 指定使用 实验性的 C++ 标准（通常对应较新的 C++ 标准，如 C++20 或更高），允许使用最新的语言特性
+     cpp_std: "experimental",
+    // 启用版本库支持，通常用于在可执行文件中嵌入版本信息（如 Git 提交哈希、构建时间等），便于调试和追踪。
+     use_version_lib: true,
+}
+
+libadb_android_srcs = [
+    // --- ADB 核心基础功能 ---
+    "adb.cpp",              // ADB 主逻辑和核心 API
+    "adb_io.cpp",           // 输入/输出操作的封装 (如读写、超时处理)
+    "adb_listeners.cpp",    // 管理本地 socket 监听器，用于处理连接请求
+    "adb_trace.cpp",        // ADB 调试跟踪 (Trace) 功能的实现
+    "adb_unique_fd.cpp",    // 对文件描述符 (FD) 的 RAII 封装，确保自动关闭
+    "adb_utils.cpp",        // 各种实用工具函数 (如字符串处理、路径操作)
+    "apacket_reader.cpp",   // 读取 ADB 协议数据包 (APacket) 的实现
+
+    // --- 事件驱动核心 (fdevent) ---
+    "fdevent/fdevent.cpp",  // 跨平台的事件驱动框架，用于管理 I/O 事件回调      
+
+    // --- ADB 服务与管理 ---
+    "services.cpp",         // ADB 服务 (如 shell, sync, tcpip) 的注册和分发
+    "sockets.cpp",          // Socket 连接的封装和管理 (包括本地和远程)
+    "socket_spec.cpp",      // Socket 规范 (如 "tcp:localhost:5555") 的解析
+
+    // --- 平台适配层 (sysdeps) ---
+    "sysdeps/env.cpp",      // 环境变量相关的系统依赖适配
+    "sysdeps/errno.cpp",    // errno 错误码处理的系统依赖适配
+
+     // --- 传输层核心 ---
+    "transport.cpp",        // 传输层核心逻辑，管理设备和连接
+    "transport_fd.cpp",     // 基于文件描述符的传输实现 (如 USB 或 TCP)
+
+    // --- 类型定义 ---
+    "types.cpp",            // ADB 内部使用的公共类型和数据结构
+]
+
+// 编译adb android 需要用到的静态库
+cc_library_static {
+    name: "libadb_android",
+    device_supported: true,
+    compile_multilib: "64",
+    defaults: ["adb_android_defaults"],
+
+    srcs: libadb_android_srcs + [
+        "client/auth.cpp",                  // ADB 客户端与设备间的认证逻辑 (如 RSA 密钥对)
+        "sysdeps_unix.cpp",                 // Unix 系统特有的系统依赖实现 (如 fork, exec)
+        "sysdeps/posix/network.cpp",        // POSIX 网络接口的适配 (如 socket, connect)
+        "fdevent/fdevent_poll.cpp",         // fdevent 的 poll() 后端 (通用 Unix 实现)
+        "fdevent/fdevent_epoll.cpp",        // fdevent 的 epoll() 后端 (Linux 高性能实现)
+        "client/transport_emulator.cpp",    // 用于连接 Android 模拟器的传输实现
+    ],
+
+    generated_headers: ["platform_tools_version"],
+
+    static_libs: [
+        // --- ADB 自身模块 ---
+        "libadb_crypto",                // ADB 加密功能
+        "libadb_tls_connection",        // ADB 的 TLS 连接管理
+        "libadb_protos",                // ADB 协议消息的 Protobuf 定义    
+        "libadb_android_protos",        // ADB Android 特定协议消息的 Protobuf 定义
+
+        // --- Android 基础库 ---
+        "libbase",                      // Android 基础工具库 (字符串、文件、日志等)
+        "libcrypto_utils",              // 加密工具函数
+        "libcrypto_static",             // OpenSSL 加密库 (静态链接)
+        "libcutils",                    // Android C 实用工具库 (如 socket, property)
+        "liblog",                       // Android 日志库 (liblog)
+        "libprotobuf-cpp-lite",         // Protobuf 的 C++ Lite 运行时库 (体积优化版)
+        "libutils",                     // Android C++ 实用工具库 (如 Vector, String8)
+    ],
+}
