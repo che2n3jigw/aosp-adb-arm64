@@ -109,7 +109,7 @@ std::string adb_version() {
             "Installed as %s\n"
             "Running on %s\n",
             ADB_VERSION_MAJOR, ADB_VERSION_MINOR, ADB_SERVER_VERSION, PLATFORM_TOOLS_VERSION,
-            "che2n3jigw", "9e80a15", android::base::GetExecutablePath().c_str(),
+            "che2n3jigw", "84023d7", android::base::GetExecutablePath().c_str(),
             GetOSVersion().c_str());
 }
 
